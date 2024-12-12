@@ -27,8 +27,15 @@ class Home(Resource):
 
 class Restaurants(Resource):
     def get(self):
-        return [restaurant.to_dict() for restaurant in Restaurant.query.all()], 200
+        response = make_response([{'address':restaurant.address,'id':restaurant.id,'name':restaurant.name} for restaurant in Restaurant.query.all()], 200)
+        return response
+class IndividualRestaurant(Resource):
+    def get(self, id):
+        response = make_response(Restaurant.query.filter_by(id = id).first().to_dict(), 200)
+        return response
+    
 api.add_resource(Home, '/home')
 api.add_resource(Restaurants, '/restaurants')
+api.add_resource(IndividualRestaurant, '/restaurants/<int:id>')
 if __name__ == "__main__":
     app.run(port=5555, debug=True)
