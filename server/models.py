@@ -20,7 +20,7 @@ class Restaurant(db.Model, SerializerMixin):
     name = db.Column(db.String)
     address = db.Column(db.String)
 
-    restaurant_pizzas = db.relationship("RestaurantPizza", back_populates = 'restaurant')
+    restaurant_pizzas = db.relationship("RestaurantPizza", back_populates = 'restaurant', cascade = 'delete')
     # add relationship
     restaurants = association_proxy('restaurant_pizzas', 'pizza',
         creator = lambda pizza_obj: RestaurantPizza(pizza = pizza_obj))
@@ -37,7 +37,7 @@ class Pizza(db.Model, SerializerMixin):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
     ingredients = db.Column(db.String)
-    restaurant_pizzas = db.relationship("RestaurantPizza", back_populates = 'pizza')
+    restaurant_pizzas = db.relationship("RestaurantPizza", back_populates = 'pizza', cascade = 'delete')
     # add relationship
     restaurants = association_proxy('restaurant_pizzas', 'restaurant',
         creator = lambda restaurant_obj: RestaurantPizza(restaurant = restaurant_obj))
@@ -53,7 +53,7 @@ class RestaurantPizza(db.Model, SerializerMixin):
     id = db.Column(db.Integer, primary_key=True)
     price = db.Column(db.Integer, nullable=False)
     pizza_id = db.Column(db.Integer, db.ForeignKey('pizzas.id'))
-    restuarant_id = db.Column(db.Integer, db.ForeignKey('restaurants.id') )
+    restaurant_id = db.Column(db.Integer, db.ForeignKey('restaurants.id') )
 
     # add relationships
     pizza = db.relationship('Pizza', back_populates = 'restaurant_pizzas')
@@ -61,6 +61,11 @@ class RestaurantPizza(db.Model, SerializerMixin):
     # add serialization rules
 
     # add validation
-
+    @validates('price')
+    def price_validator(self, key, price):
+        if not 1 < price < 30:
+            raise ValueError("Price must be between 1 and 30 dollars")
+       
+        return price
     def __repr__(self):
         return f"<RestaurantPizza ${self.price}>"
